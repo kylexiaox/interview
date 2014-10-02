@@ -23,6 +23,7 @@ import javax.xml.bind.JAXBElement;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.mockito.internal.stubbing.answers.ThrowsException;
 
 import com.Interview.bean.Message;
 import com.Interview.bean.User;
@@ -109,23 +110,29 @@ public class InterviewRest {
 	@POST
 	@Path("/retriveChatList/{index}/{type}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response getUnsignedStudentListByProject(@PathParam("index") long index,@PathParam("type") String type){
+	public Response getUnsignedStudentListByProject(@PathParam("index") long index,@PathParam("type") int type){
 		InterviewService interviewService = new InterviewService();
 		Response response = null;
 		List<Message> messages;
 		try {
-			messages = interviewService.getCurrentMessages();
+			if(type == 1){
+				messages = interviewService.getCurrentMessages();
+			}
+			else if (type == 2) {
+				messages = interviewService.getCurrentConversation();
+			}
+			else {
+				throw new Exception("wrong tpye!");
+			}
 			JSONArray jArray = new JSONArray();
 			for(int i = 0; i<messages.size();i++){
 				JSONObject jObject = new JSONObject();
-				//jObject.put("studentId", userBeans.get(i).getAccountId());
-				//jObject.put("name", messages.get(i).getUserName());
 				jArray.put(jObject);
 				}
 			response = Response.ok(jArray.toString()).build();
 		}
 		catch (Exception e){
-			if (e.getMessage().equals("permision denied"))
+			if (e.getMessage().equals("wrong tpye!"))
 				response = Response.status(Response.Status.FORBIDDEN).build();
 			else
 				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();

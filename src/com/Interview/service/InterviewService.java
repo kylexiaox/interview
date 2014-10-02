@@ -20,6 +20,10 @@ public class InterviewService {
 		return MessageCache.getInstance().getMessagesCached();
 	}
 	
+	public List<Message> getCurrentConversation() {
+		return null;
+	}
+	
 	public void sendMessage(Message message){
 		
 	}
