@@ -1,5 +1,6 @@
 package com.Interview.service;
 
+import java.util.List;
 import java.util.Vector;
 
 import com.Interview.bean.Message;
@@ -10,25 +11,25 @@ import com.Interview.bean.UserType;
  *
  */
 public class InterviewService {
-	/**
-	 *  identify the user Type 
-	 * @param userName
-	 * @param passwd
-	 * @return
-	 */
-	public UserType login(String userName,String passwd) {
-		UserType type;
-		type = UserType.admin;
-		//Call Dao
-		return type;
-	}
+
 	/**
 	 * get cached Message list
 	 * @return
 	 */
-	public Vector<Message> getCurrentMessages() {
+	public List<Message> getCurrentMessages() {
 		return MessageCache.getInstance().getMessagesCached();
 	}
 	
+	public void sendMessage(Message message){
+		
+	}
+	
+	//我在纠结是自己写缓存还是用memcache..
+	public void refreshCache(Message message){
+		if(message.getReplyMessageId()!=-1){
+			
+		}
+			
+	}
 
 }

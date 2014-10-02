@@ -1,10 +1,6 @@
 /**
- * 
- */
-
-/**
  * @author xiangxiao
- * @date Sep 28, 2014
+ * @since Sep 28, 2014
  * @version 1.7
  */
 package com.Interview.websockets;

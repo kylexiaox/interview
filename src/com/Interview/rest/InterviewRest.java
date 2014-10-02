@@ -26,6 +26,7 @@ import org.codehaus.jettison.json.JSONObject;
 
 import com.Interview.bean.Message;
 import com.Interview.bean.User;
+import com.Interview.service.InterviewService;
 import com.Interview.service.UserService;
 import com.google.gson.JsonArray;
 
@@ -48,11 +49,14 @@ public class InterviewRest {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response userLogin(JSONObject user){
 		Response response = null;
+		//User userBean;
+		UserService userService = new UserService();
 		try {
-			//userBean = userService.login(user.getString("username").toString(), user.getString("password").toString());
+			User userBean = userService.login(user.getLong("userId"), user.getString("password"));
 			JSONObject jo = new JSONObject();
-//			jo.put("token", userBean.getToken());
-//			jo.put("role", userBean.getRole());
+			jo.put("token", userBean.getToken());
+			jo.put("role", userBean.getUserId());
+			jo.put("type", userBean.getUserType());
 			response = Response.ok(jo).build();
 		}
 		catch (Exception e){
@@ -75,10 +79,13 @@ public class InterviewRest {
 	public Response userRegister(@PathParam("nickName")String nickName){
 		UserService userService = new UserService();
 		Response response = null;
-		User user = null;
 		try {
-			user = userService.register(nickName);
-			response = Response.ok("success").build();
+			User user = userService.register(nickName);
+			JSONObject jo = new JSONObject();
+			jo.put("token", user.getToken());
+			jo.put("role", user.getUserId());
+			jo.put("type", user.getUserType());
+			response = Response.ok(jo).build();
 			
 		}
 		catch (Exception e){
@@ -102,27 +109,27 @@ public class InterviewRest {
 	@POST
 	@Path("/retriveChatList/{index}/{type}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response getUnsignedStudentListByProject(@PathParam("index") String index,@PathParam("type") String type){
-	//	com.service.UserService userService = new com.service.UserService();
+	public Response getUnsignedStudentListByProject(@PathParam("index") long index,@PathParam("type") String type){
+		InterviewService interviewService = new InterviewService();
 		Response response = null;
 		List<Message> messages;
-//		try {
-//			//userBeans = userService.getUnsginedStudentByProject(accountId, projectId);
-//			JSONArray jArray = new JSONArray();
-//			for(int i = 0; i<messages.size();i++){
-//				JSONObject jObject = new JSONObject();
-//				//jObject.put("studentId", userBeans.get(i).getAccountId());
-//				jObject.put("name", messages.get(i).getUserName());
-//				jArray.put(jObject);
-//				}
-//			response = Response.ok(jArray.toString()).build();
-//		}
-//		catch (Exception e){
-//			if (e.getMessage().equals("permision denied"))
-//				response = Response.status(Response.Status.FORBIDDEN).build();
-//			else
-//				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-//		}
+		try {
+			messages = interviewService.getCurrentMessages();
+			JSONArray jArray = new JSONArray();
+			for(int i = 0; i<messages.size();i++){
+				JSONObject jObject = new JSONObject();
+				//jObject.put("studentId", userBeans.get(i).getAccountId());
+				//jObject.put("name", messages.get(i).getUserName());
+				jArray.put(jObject);
+				}
+			response = Response.ok(jArray.toString()).build();
+		}
+		catch (Exception e){
+			if (e.getMessage().equals("permision denied"))
+				response = Response.status(Response.Status.FORBIDDEN).build();
+			else
+				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		}
 		return response;
 	}
 

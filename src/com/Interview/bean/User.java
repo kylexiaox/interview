@@ -13,12 +13,7 @@ public class User {
 	private long userId;
 	private String nickName;
 	private String token;
-	public String getToken() {
-		return token;
-	}
-	public void setToken(String token) {
-		this.token = token;
-	}
+	private UserType userType;
 	public long getUserId() {
 		return userId;
 	}
@@ -31,6 +26,16 @@ public class User {
 	public void setNickName(String nickName) {
 		this.nickName = nickName;
 	}
-	
-	
+	public String getToken() {
+		return token;
+	}
+	public void setToken(String token) {
+		this.token = token;
+	}
+	public UserType getUserType() {
+		return userType;
+	}
+	public void setUserType(UserType userType) {
+		this.userType = userType;
+	}
 }

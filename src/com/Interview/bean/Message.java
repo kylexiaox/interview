@@ -1,17 +1,20 @@
 package com.Interview.bean;
-/**
- * @author xiangxiao
- * @since Oct 2, 2014
- * @version 1.7
- */
+
 import java.sql.Timestamp;
 
 public class Message {
 	private long messageId;
-	private long replyMessageId;
 	private User user;
+	private long replyMessageId;
 	private String MessageContent;
 	private Timestamp time;
+	
+	public long getReplyMessageId() {
+		return replyMessageId;
+	}
+	public void setReplyMessageId(long replyMessageId) {
+		this.replyMessageId = replyMessageId;
+	}
 	public User getUser() {
 		return user;
 	}
@@ -35,11 +38,5 @@ public class Message {
 	}
 	public void setTime(Timestamp time) {
 		this.time = time;
-	}
-	public long getReplyMessageId() {
-		return replyMessageId;
-	}
-	public void setReplyMessageId(long replyMessageId) {
-		this.replyMessageId = replyMessageId;
 	}
 }
