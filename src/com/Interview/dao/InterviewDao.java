@@ -52,10 +52,8 @@ public class InterviewDao {
 
 	/**
 	 * 
-	 * @param index
-	 *            current messageId,-1 means the latest message
-	 * @param number
-	 *            Indicate the number of messages which should been fetched
+	 * @param index current messageId,-1 means the latest message
+	 * @param number Indicate the number of messages which should been fetched
 	 * @return
 	 * @throws Exception 
 	 */
