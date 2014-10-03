@@ -6,5 +6,5 @@ package com.Interview.bean;
  * @version 1.7
  */
 public enum UserType {
-	interviewer,interviewee,guest
+	interviewer,interviewee,visitor
 }
