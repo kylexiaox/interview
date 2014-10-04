@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class Message {
 	private long messageId;
 	private User user;
-	private long replyMessageId;
+	private long replyMessageId = -1;
 	private String MessageContent;
 	private Timestamp time;
 	

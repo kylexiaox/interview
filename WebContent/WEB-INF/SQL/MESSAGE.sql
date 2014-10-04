@@ -18,8 +18,8 @@
 -- ----------------------------
 --  Table structure for MESSAGE
 -- ----------------------------
-DROP TABLE IF EXISTS interview.MESSAGE;
-CREATE TABLE interview.MESSAGE (
+DROP TABLE IF EXISTS MESSAGE;
+CREATE TABLE MESSAGE (
 	MESSAGE_ID serial,
 	REPLY_MESSAGE_ID int4 NOT NULL,
 	USER_ID int4 NOT NULL,
@@ -28,12 +28,12 @@ CREATE TABLE interview.MESSAGE (
 	TIME_STAMP timestamp(6) NOT NULL
 )
 WITH (OIDS=FALSE);
-ALTER TABLE Interview.MESSAGE OWNER TO postgres;
+ALTER TABLE MESSAGE OWNER TO postgres;
 
-COMMENT ON COLUMN Interview.MESSAGE.USER_NICK_NAME IS 'duplicate record';
+COMMENT ON COLUMN MESSAGE.USER_NICK_NAME IS 'duplicate record';
 
 -- ----------------------------
 --  Primary key structure for table MESSAGE
 -- ----------------------------
-ALTER TABLE Interview.MESSAGE ADD PRIMARY KEY (MESSAGE_ID) NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE MESSAGE ADD PRIMARY KEY (MESSAGE_ID) NOT DEFERRABLE INITIALLY IMMEDIATE;
 

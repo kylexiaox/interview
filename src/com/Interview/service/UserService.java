@@ -7,6 +7,7 @@ package com.Interview.service;
 import java.util.List;
 
 import com.Interview.bean.User;
+import com.Interview.dao.InterviewDao;
 import com.Interview.dao.UserDao;
 import com.google.gson.JsonObject;
 
@@ -73,9 +74,10 @@ public class UserService{
 	 */
 	public User register(String nickName) throws Exception {
 		UserDao userDao = new UserDao();
-		User user;
+		User user=null;
 		try {
 			user = userDao.register(nickName);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new Exception("fail to add new user!");

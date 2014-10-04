@@ -4,6 +4,7 @@
 package com.Interview.dao;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,11 +25,11 @@ import com.Interview.locator.getSourceLocator;
 public class InterviewDao {
 
 	public void insertMessage(Message message) throws Exception {
-		Connection conn = null;
+		Connection conn = getSourceLocator.ds.getConnection();
 		PreparedStatement pstmt = null;
 		try {
-			conn = getSourceLocator.ds.getConnection();
-			String sql = "insert into MESSAGE (REPLY_MESSAGE_ID,"
+			
+			String sql = "insert into interview.message (REPLY_MESSAGE_ID,"
 					+ "USER_ID,USER_NICK_NAME,MESSAGE_CONTENT,TIME_STAMP) "
 					+ "values (?,?,?,?,?);";
 			pstmt = conn.prepareStatement(sql);
@@ -40,7 +41,7 @@ public class InterviewDao {
 			pstmt.executeUpdate();
 			conn.commit();
 		} catch (Exception e) {
-			conn.rollback();
+			e.printStackTrace();
 			throw new Exception("internal error!");
 		} finally {
 			if (conn != null && pstmt != null) {
@@ -59,11 +60,11 @@ public class InterviewDao {
 	 */
 	public List<Message> getMessageList(long index, int number) throws Exception {
 		List<Message> messages = new ArrayList<Message>();
-		Connection conn = null;
+		Connection conn = getSourceLocator.ds.getConnection();	
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try{
-			conn = getSourceLocator.ds.getConnection();
+			
 			String sql ="SELECT * FROM  message  ORDER BY message.time_stamp DESC LIMIT ?";
 			pstmt =conn.prepareStatement(sql);
 			pstmt.setInt(1, number);

@@ -31,7 +31,7 @@ import com.Interview.service.InterviewService;
 import com.Interview.service.UserService;
 import com.google.gson.JsonArray;
 
-@Path("/rest")
+@Path("")
 public class InterviewRest {
 	@Context
 	UriInfo uriInfo;
@@ -74,7 +74,7 @@ public class InterviewRest {
 	 * @param user
 	 * @return
 	 */
-	@POST
+	@GET
 	@Path("/register/{nickName}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response userRegister(@PathParam("nickName")String nickName){
@@ -83,8 +83,9 @@ public class InterviewRest {
 		try {
 			User user = userService.register(nickName);
 			JSONObject jo = new JSONObject();
+			jo.put("nickName", user.getNickName());
 			jo.put("token", user.getToken());
-			jo.put("role", user.getUserId());
+			jo.put("userId", user.getUserId());
 			jo.put("type", user.getUserType());
 			response = Response.ok(jo).build();
 			
@@ -107,23 +108,15 @@ public class InterviewRest {
 	 * @return              response
 	 * @throws Exception
 	 */
-	@POST
-	@Path("/retriveChatList/{index}/{type}")
+	@GET
+	@Path("/retriveChatList/{index}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response getUnsignedStudentListByProject(@PathParam("index") long index,@PathParam("type") int type){
+	public Response getUnsignedStudentListByProject(@PathParam("index") long index){
 		InterviewService interviewService = new InterviewService();
 		Response response = null;
 		List<Message> messages;
 		try {
-			if(type == 1){
-				messages = interviewService.getCurrentMessages();
-			}
-			else if (type == 2) {
-				messages = interviewService.getCurrentConversation();
-			}
-			else {
-				throw new Exception("wrong tpye!");
-			}
+			messages = interviewService.getCurrentMessages(index);	
 			JSONArray jArray = new JSONArray();
 			for(int i = 0; i<messages.size();i++){
 				JSONObject jObject = new JSONObject();
@@ -139,5 +132,13 @@ public class InterviewRest {
 		}
 		return response;
 	}
+
+	// test
+		@GET
+		@Produces(MediaType.TEXT_HTML)
+		public String sayHelloHtml() {
+			return "<html> " + "<title>" + "Hello Jersey" + "</title>"
+					+ "<body><h1>" + "Hello World in REST" + "</body></h1>" + "</html> ";
+		}
 
 }
