@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Random;
 
+import org.eclipse.jdt.internal.compiler.ast.FalseLiteral;
+
 import com.Interview.bean.User;
 import com.Interview.bean.UserType;
 import com.Interview.locator.getSourceLocator;
@@ -71,12 +73,42 @@ public class UserDao {
 	 * @param userId
 	 * @param token
 	 * @return
+	 * @throws Exception 
 	 */
-	public boolean getAuth(long userId,String token){
-		
-		return false;
+	public User getAuth(long userId,String token) throws Exception{
+		Connection conn = getSourceLocator.ds.getConnection();	
+		PreparedStatement pstmt = null;
+		User user = null;
+		ResultSet rs = null;
+		try {
+			String sql = "select * from users where user_id = ? and token = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setLong(1, userId);
+			pstmt.setString(2, token);
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				user = new User();
+				user.setNickName(rs.getString("nick_name"));
+				user.setToken(rs.getString("token"));
+				user.setUserId(rs.getLong("user_id"));
+				user.setUserType(UserType.valueOf(rs.getString("user_type")));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new Exception("internal error!");
+		} finally {
+			if (conn != null && pstmt != null) {
+				conn.close();
+				pstmt.close();
+			}
+		}
+		return user;
 	}
-
+	/**
+	 * method to get token 
+	 * @param length
+	 * @return
+	 */
 	public static String getRandomString(int length) {  
 	    String base = "abcdefghijklmnopqrstuvwxyz0123456789";     
 	    Random random = new Random();     

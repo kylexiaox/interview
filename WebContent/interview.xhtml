@@ -35,6 +35,9 @@
         "use strict";
 
         var Chat = {};
+        
+		var userId = "1";
+		var token = "5d45b6kafo";
 
         Chat.socket = null;
 
@@ -69,9 +72,9 @@
 
         Chat.initialize = function() {
             if (window.location.protocol == 'http:') {
-                Chat.connect('ws://' + window.location.host + '/OnlineInterview/websocket');
+                Chat.connect('ws://' + window.location.host + '/OnlineInterview/websocket?userId='+userId+"&token="+token);
             } else {
-                Chat.connect('wss://' + window.location.host + '/examples/websocket/chat');
+                Chat.connect('wss://' + window.location.host + '/OnlineInterview/websocket?userId='+userId+"&token="+token);
             }
         };
 

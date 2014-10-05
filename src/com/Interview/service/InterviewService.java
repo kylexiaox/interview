@@ -16,18 +16,26 @@ public class InterviewService {
 	private InterviewDao interviewDao = new InterviewDao();
 
 	/**
-	 * get cached Message list
+	 * get  Message list
 	 * @return
 	 * @throws Exception 
 	 */
-	public List<Message> getCurrentMessages(long currentIndex) throws Exception {
-		
-		return interviewDao.getMessageList(currentIndex, 20);
+	public List<Message> getCurrentMessages(int number) throws Exception {
+		return interviewDao.getMessageList(Long.MAX_VALUE,number);
+	}
+	
+	/**
+	 * get  Message history list
+	 * @return
+	 * @throws Exception 
+	 */
+	public List<Message> getMessages(long index,int number) throws Exception {
+		return interviewDao.getMessageList(index,number);
 	}
 	
 	
-	public void sendMessage(Message message) throws Exception{
-		interviewDao.insertMessage(message);
+	public Message sendMessage(Message message) throws Exception{
+		return interviewDao.insertMessage(message);
 	}
 	
 	//我在纠结是自己写缓存还是用memcache..

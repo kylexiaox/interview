@@ -16,7 +16,7 @@ public class UserService{
 	/**
 	 * User login.for admin and interviewee
 	 *
-	 * @param accountId  the id of the current user
+	 * @param userId  the id of the current user
 	 * @param password   the password of the current user
 	 * @return           a user object
 	 * @throws Exception
@@ -41,16 +41,16 @@ public class UserService{
 	/**
 	 * Checks the role of the current user.
 	 *
-	 * @param accountId  the id of the current user
+	 * @param userId  the id of the current user
 	 * @param token      the token corresponding to the current user
-	 * @return           role of the user
+	 * @return           userObject
 	 * @throws Exception
 	 */
-	public boolean checkAuth(long userId, String token) throws Exception {
-		boolean success = false;
+	public User checkAuth(long userId, String token) throws Exception {
 		UserDao userDao = new UserDao();
+		User user = null;
 		try{
-			success = userDao.getAuth(userId, token);
+			user = userDao.getAuth(userId, token);
 		}
 		catch (Exception e){
 			e.printStackTrace();
@@ -59,17 +59,14 @@ public class UserService{
 			else	
 				throw new Exception("internal error!");
 		}
-		return success;
+		return user;
 	}
 
 
 	/**
-	 * Registration - adds a new user.
-	 *
-	 * @param accountId  the id of the new user
-	 * @param password   the password of the new user
-	 * @param userName   the name of the new user
-	 * @param role       the role of the new user
+	 * Register  add a new visitor
+	 * @param nickName
+	 * @return
 	 * @throws Exception
 	 */
 	public User register(String nickName) throws Exception {

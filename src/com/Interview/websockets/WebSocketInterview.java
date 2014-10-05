@@ -6,21 +6,27 @@
 package com.Interview.websockets;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.websocket.CloseReason;
+import javax.websocket.CloseReason.CloseCodes;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.CloseReason.CloseCode;
 import javax.websocket.server.ServerEndpoint;
 
 import org.apache.log4j.Logger;
 
 import com.Interview.bean.Message;
+import com.Interview.bean.User;
 import com.Interview.service.InterviewService;
+import com.Interview.service.UserService;
 
 @ServerEndpoint("/websocket")
 public class WebSocketInterview {
@@ -28,8 +34,10 @@ public class WebSocketInterview {
 	private static CopyOnWriteArraySet<WebSocketInterview> connectionSet = new CopyOnWriteArraySet<>();
 	private static CopyOnWriteArraySet<WebSocketInterview> adminSet = new CopyOnWriteArraySet<>();
 	private Session session;
+	User user;
 	private AtomicInteger failureCount = new AtomicInteger(0);
 	InterviewService is = new InterviewService();
+	UserService us = new UserService();
 
 	// private static final Logger logger =
 	// Logger.getLogger(WebSocketInterview.class);
@@ -37,35 +45,71 @@ public class WebSocketInterview {
 	 * Construct generate connectionId as userId
 	 */
 	public WebSocketInterview() {
-		connectionId.incrementAndGet();
+		user = new User();
 		System.out.println("init");
 	}
 
 	@OnMessage
-  public void onMessage(String message, Session session)
-    throws IOException, InterruptedException {
-	  Message messageObject = new Message();
-	  try {
-		is.sendMessage(messageObject);
-		 message = connectionId+" ："+message;
-		  MultiCast(message, connectionSet);
-	} catch (Exception e) {
-		message = "fail to send this message";
-		MultiCast(message,this );
-		e.printStackTrace();
+	public void onMessage(String message) throws IOException,
+			InterruptedException {
+		Message messageObject = new Message();
+		try {
+			messageObject.setMessageContent(message);
+			messageObject.setReplyMessageId(-1);   //reply for no one
+			messageObject.setUser(user);
+			messageObject =is.sendMessage(messageObject);
+			message = messageObject.getUser().getNickName() + " ：" + message;
+			MultiCast(message, connectionSet);
+		} catch (Exception e) {
+			message = "fail to send this message";
+			MultiCast(message, this);
+			e.printStackTrace();
+		}
 	}
-  }
 
+	/**
+	 * start websocket session,and check auth
+	 * 
+	 * @param session
+	 * @throws
+	 */
 	@OnOpen
 	public void onOpen(Session session) {
 		System.out.println("started");
 		this.session = session;
-		connectionSet.add(this);
+		try {
+			long userId = Long.parseLong(session.getRequestParameterMap()
+					.get("userId").get(0).toString());
+			String token = session.getRequestParameterMap().get("token").get(0)
+					.toString();
+			user = us.checkAuth(userId, token);
+			if (user == null)
+				throw new Exception("invalid user");
+			connectionSet.add(this);
+			session.getBasicRemote().sendText("welcome! \nyour userId is "
+			+user.getUserId()+"\nyour nick name is "+user.getNickName());
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("connection failure");
+			try {
+				session.close(new CloseReason(CloseCodes.TLS_HANDSHAKE_FAILURE,
+						"invalid user"));
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
 	}
 
 	@OnClose
 	public void onClose(Session session) {
 		connectionSet.remove(this);
+		try {
+			session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE,
+					"session closed"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -87,7 +131,9 @@ public class WebSocketInterview {
 					if (interview.failureCount.intValue() > 3) {
 						connectionSet.remove(interview);
 						try {
-							interview.session.close();
+							interview.session.close(new CloseReason(
+									CloseCodes.TRY_AGAIN_LATER,
+									"connection failure"));
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();

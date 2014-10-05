@@ -29,6 +29,7 @@ import com.Interview.bean.Message;
 import com.Interview.bean.User;
 import com.Interview.service.InterviewService;
 import com.Interview.service.UserService;
+import com.Interview.util.JsonObjectMapper;
 import com.google.gson.JsonArray;
 
 @Path("")
@@ -74,7 +75,7 @@ public class InterviewRest {
 	 * @param user
 	 * @return
 	 */
-	@GET
+	@POST
 	@Path("/register/{nickName}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response userRegister(@PathParam("nickName")String nickName){
@@ -82,13 +83,8 @@ public class InterviewRest {
 		Response response = null;
 		try {
 			User user = userService.register(nickName);
-			JSONObject jo = new JSONObject();
-			jo.put("nickName", user.getNickName());
-			jo.put("token", user.getToken());
-			jo.put("userId", user.getUserId());
-			jo.put("type", user.getUserType());
-			response = Response.ok(jo).build();
-			
+			JSONObject jo = new JSONObject(JsonObjectMapper.userMapper(user));
+			response = Response.ok(jo).build();	
 		}
 		catch (Exception e){
 			if (e.getMessage().equals("person Exist"))
@@ -111,15 +107,45 @@ public class InterviewRest {
 	@GET
 	@Path("/retriveChatList/{index}")
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Response getUnsignedStudentListByProject(@PathParam("index") long index){
+	public Response retriveChatList (@PathParam("index") long index){
 		InterviewService interviewService = new InterviewService();
 		Response response = null;
 		List<Message> messages;
 		try {
-			messages = interviewService.getCurrentMessages(index);	
+			messages = interviewService.getMessages(index, 20);	
 			JSONArray jArray = new JSONArray();
 			for(int i = 0; i<messages.size();i++){
-				JSONObject jObject = new JSONObject();
+				JSONObject jObject = new JSONObject(JsonObjectMapper.messageMapper(messages.get(i)));			
+				jArray.put(jObject);
+				}
+			response = Response.ok(jArray.toString()).build();
+		}
+		catch (Exception e){
+			if (e.getMessage().equals("wrong tpye!"))
+				response = Response.status(Response.Status.FORBIDDEN).build();
+			else
+				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		}
+		return response;
+	}
+	
+	/**
+	 * List latest messages
+	 * @return response
+	 * @throws Exception
+	 */
+	@GET
+	@Path("/retriveLatest")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response retriveLatestChatList (){
+		InterviewService interviewService = new InterviewService();
+		Response response = null;
+		List<Message> messages;
+		try {
+			messages = interviewService.getCurrentMessages(30);	
+			JSONArray jArray = new JSONArray();
+			for(int i = 0; i<messages.size();i++){
+				JSONObject jObject = new JSONObject(JsonObjectMapper.messageMapper(messages.get(i)));
 				jArray.put(jObject);
 				}
 			response = Response.ok(jArray.toString()).build();
