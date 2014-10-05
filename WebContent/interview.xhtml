@@ -80,6 +80,8 @@
 
         Chat.sendMessage = (function() {
             var message = document.getElementById('chat').value;
+            var replyMessage = -1
+            message = "{messageContent:"+message+",replyMessageId:"+replyMessage +"}"
             if (message != '') {
                 Chat.socket.send(message);
                 document.getElementById('chat').value = '';

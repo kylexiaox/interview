@@ -9,7 +9,6 @@ import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -18,19 +17,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.JAXBElement;
-
 import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.mockito.internal.stubbing.answers.ThrowsException;
-
 import com.Interview.bean.Message;
 import com.Interview.bean.User;
 import com.Interview.service.InterviewService;
 import com.Interview.service.UserService;
 import com.Interview.util.JsonObjectMapper;
-import com.google.gson.JsonArray;
 
 @Path("")
 public class InterviewRest {

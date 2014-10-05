@@ -31,7 +31,7 @@ public class InterviewDao {
 		try {
 			String sql = "insert into message (REPLY_MESSAGE_ID,"
 					+ "USER_ID,USER_NICK_NAME,MESSAGE_CONTENT,TIME_STAMP) "
-					+ "values (?,?,?,?,current_timestamp) returning user_id,time_stamp";
+					+ "values (?,?,?,?,current_timestamp) returning message_id,time_stamp";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setLong(1, message.getReplyMessageId());
 			pstmt.setLong(2, message.getUser().getUserId());
@@ -39,8 +39,11 @@ public class InterviewDao {
 			pstmt.setString(4, message.getMessageContent());
 			rs = pstmt.executeQuery();
 			if(rs.next()){
-				message.setMessageId(rs.getLong("user_id"));
+				message.setMessageId(rs.getLong("message_id"));
 				message.setTime(rs.getTimestamp("time_stamp"));
+			}
+			else {
+				throw new Exception("fail to insert message into database !");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

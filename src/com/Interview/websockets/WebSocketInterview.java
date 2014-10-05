@@ -6,8 +6,6 @@
 package com.Interview.websockets;
 
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,19 +16,22 @@ import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.CloseReason.CloseCode;
 import javax.websocket.server.ServerEndpoint;
 
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 import org.apache.log4j.Logger;
 
 import com.Interview.bean.Message;
 import com.Interview.bean.User;
 import com.Interview.service.InterviewService;
 import com.Interview.service.UserService;
+import com.Interview.util.JsonObjectMapper;
+import com.google.gson.JsonObject;
 
 @ServerEndpoint("/websocket")
 public class WebSocketInterview {
-	private static final AtomicInteger connectionId = new AtomicInteger(0);
 	private static CopyOnWriteArraySet<WebSocketInterview> connectionSet = new CopyOnWriteArraySet<>();
 	private static CopyOnWriteArraySet<WebSocketInterview> adminSet = new CopyOnWriteArraySet<>();
 	private Session session;
@@ -51,14 +52,15 @@ public class WebSocketInterview {
 
 	@OnMessage
 	public void onMessage(String message) throws IOException,
-			InterruptedException {
+			InterruptedException, JSONException {
 		Message messageObject = new Message();
+		JSONObject messageJson = new JSONObject(message);
 		try {
-			messageObject.setMessageContent(message);
-			messageObject.setReplyMessageId(-1);   //reply for no one
+			messageObject.setMessageContent(messageJson.getString("messageContent"));
+			messageObject.setReplyMessageId(messageJson.getLong("replyMessageId"));   
 			messageObject.setUser(user);
 			messageObject =is.sendMessage(messageObject);
-			message = messageObject.getUser().getNickName() + " ：" + message;
+			message = new JSONObject(JsonObjectMapper.messageMapper(messageObject)).toString();
 			MultiCast(message, connectionSet);
 		} catch (Exception e) {
 			message = "fail to send this message";
