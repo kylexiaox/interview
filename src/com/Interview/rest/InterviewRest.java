@@ -17,13 +17,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
+
 import com.Interview.bean.Message;
 import com.Interview.bean.User;
 import com.Interview.service.InterviewService;
 import com.Interview.service.UserService;
 import com.Interview.util.JsonObjectMapper;
+import com.Interview.websockets.WebSocketInterview;
 
 @Path("")
 public class InterviewRest {
@@ -32,6 +37,14 @@ public class InterviewRest {
 	@Context
 	Request request;
 
+	private static final Logger logger = Logger
+			.getLogger(InterviewRest.class);
+	
+	public InterviewRest() {
+		String prefix = System.getProperty("catalina.base");
+		String path = prefix + "/logs/OnlineInterview/log4j.properties";
+		PropertyConfigurator.configure(path);
+	}
 	/**
 	 * User login. for interviewer and interviewee
 	 *
@@ -52,9 +65,11 @@ public class InterviewRest {
 			jo.put("token", userBean.getToken());
 			jo.put("role", userBean.getUserId());
 			jo.put("type", userBean.getUserType());
+			logger.info("user "+userBean.getUserId() +" have logined");
 			response = Response.ok(jo).build();
 		}
 		catch (Exception e){
+			logger.info("login failed");
 			if (e.getMessage().equals("invalid"))
 				response = Response.status(Response.Status.UNAUTHORIZED).build();
 			else
@@ -68,7 +83,7 @@ public class InterviewRest {
 	 * @param user
 	 * @return
 	 */
-	@POST
+	@GET
 	@Path("/register/{nickName}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response userRegister(@PathParam("nickName")String nickName){
@@ -77,13 +92,11 @@ public class InterviewRest {
 		try {
 			User user = userService.register(nickName);
 			JSONObject jo = new JSONObject(JsonObjectMapper.userMapper(user));
-			response = Response.ok(jo).build();	
+			logger.info(nickName + " with id : "+ user.getUserId() + " have registered");
+			response = Response.ok(jo).build();		
 		}
 		catch (Exception e){
-			if (e.getMessage().equals("person Exist"))
-				response = Response.status(Response.Status.FORBIDDEN).build();
-			else
-				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 		return response;
 	}
@@ -114,10 +127,7 @@ public class InterviewRest {
 			response = Response.ok(jArray.toString()).build();
 		}
 		catch (Exception e){
-			if (e.getMessage().equals("wrong tpye!"))
-				response = Response.status(Response.Status.FORBIDDEN).build();
-			else
-				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 		return response;
 	}
@@ -144,14 +154,34 @@ public class InterviewRest {
 			response = Response.ok(jArray.toString()).build();
 		}
 		catch (Exception e){
-			if (e.getMessage().equals("wrong tpye!"))
-				response = Response.status(Response.Status.FORBIDDEN).build();
-			else
-				response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
 		}
 		return response;
 	}
-
+	/**
+	 * List latest messages
+	 * @return response
+	 * @throws Exception
+	 */
+	@GET
+	@Path("/retriveAdmin")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response retriveAdminList (){ 
+		Response response = null;
+		try {
+				
+			JSONArray jArray = new JSONArray();
+			for(int i = 0; i<WebSocketInterview.adminList.size();i++){
+				JSONObject jObject = new JSONObject(JsonObjectMapper.userMapper(WebSocketInterview.adminList.get(i)));
+				jArray.put(jObject);
+				}
+			response = Response.ok(jArray.toString()).build();
+		}
+		catch (Exception e){
+			response = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+		}
+		return response;
+	}
 	// test
 		@GET
 		@Produces(MediaType.TEXT_HTML)

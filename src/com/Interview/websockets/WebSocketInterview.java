@@ -1,12 +1,14 @@
 /**
- * @author xiangxiao
+ * @author Xiang Xiao
  * @since Sep 28, 2014
  * @version 1.7
  */
 package com.Interview.websockets;
 
 import java.io.IOException;
+import java.util.Dictionary;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,32 +23,46 @@ import javax.websocket.server.ServerEndpoint;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+import org.apache.tomcat.jni.Directory;
 
 import com.Interview.bean.Message;
 import com.Interview.bean.User;
+import com.Interview.bean.UserType;
 import com.Interview.service.InterviewService;
 import com.Interview.service.UserService;
 import com.Interview.util.JsonObjectMapper;
+import com.apple.laf.ClientPropertyApplicator.Property;
 import com.google.gson.JsonObject;
+import com.sun.research.ws.wadl.Request;
+import com.sun.xml.internal.fastinfoset.sax.Properties;
 
 @ServerEndpoint("/websocket")
 public class WebSocketInterview {
 	private static CopyOnWriteArraySet<WebSocketInterview> connectionSet = new CopyOnWriteArraySet<>();
-	private static CopyOnWriteArraySet<WebSocketInterview> adminSet = new CopyOnWriteArraySet<>();
+	public static CopyOnWriteArrayList<User> adminList = new CopyOnWriteArrayList<>();
+	private static CopyOnWriteArraySet<WebSocketInterview> adminSet= new CopyOnWriteArraySet<WebSocketInterview>();
 	private Session session;
-	User user;
+	private static User user;
 	private AtomicInteger failureCount = new AtomicInteger(0);
 	InterviewService is = new InterviewService();
 	UserService us = new UserService();
 
-	// private static final Logger logger =
-	// Logger.getLogger(WebSocketInterview.class);
+	private static final Logger logger = Logger
+			.getLogger(WebSocketInterview.class);
+
 	/**
 	 * Construct generate connectionId as userId
 	 */
 	public WebSocketInterview() {
 		user = new User();
+		String prefix = System.getProperty("catalina.base");
+		String path = prefix + "/logs/OnlineInterview/log4j.properties";
+		PropertyConfigurator.configure(path);
+		System.out.println(path);
+		logger.info("init");
 		System.out.println("init");
 	}
 
@@ -56,14 +72,20 @@ public class WebSocketInterview {
 		Message messageObject = new Message();
 		JSONObject messageJson = new JSONObject(message);
 		try {
-			messageObject.setMessageContent(messageJson.getString("messageContent"));
-			messageObject.setReplyMessageId(messageJson.getLong("replyMessageId"));   
+			messageObject.setMessageContent(messageJson
+					.getString("messageContent"));
+			messageObject.setReplyMessageId(messageJson
+					.getLong("replyMessageId"));
 			messageObject.setUser(user);
-			messageObject =is.sendMessage(messageObject);
-			message = new JSONObject(JsonObjectMapper.messageMapper(messageObject)).toString();
+			messageObject = is.sendMessage(messageObject);
+			message = new JSONObject(
+					JsonObjectMapper.messageMapper(messageObject)).toString();
 			MultiCast(message, connectionSet);
+			logger.info("message with Id : " + messageObject.getMessageId()
+					+ " have been sent");
 		} catch (Exception e) {
-			message = "fail to send this message";
+			logger.info("message with Id : " + messageObject.getMessageId()
+					+ " failed to send");
 			MultiCast(message, this);
 			e.printStackTrace();
 		}
@@ -88,29 +110,29 @@ public class WebSocketInterview {
 			if (user == null)
 				throw new Exception("invalid user");
 			connectionSet.add(this);
-			session.getBasicRemote().sendText("welcome! \nyour userId is "
-			+user.getUserId()+"\nyour nick name is "+user.getNickName());
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("connection failure");
-			try {
-				session.close(new CloseReason(CloseCodes.TLS_HANDSHAKE_FAILURE,
-						"invalid user"));
-			} catch (IOException e1) {
-				e1.printStackTrace();
+			if(user.getUserType()==UserType.interviewee||user.getUserType()==UserType.interviewer){
+				adminList.add(user);
+				adminSet.add(this);
+				MultiCast(JsonObjectMapper.userMapper(user).remove("token").toString(),connectionSet);
 			}
+			session.getBasicRemote().sendText(
+					"welcome! \nyour userId is " + user.getUserId()
+							+ "\nyour nick name is " + user.getNickName());
+			logger.info("user " + user.getUserId() + " have joined!");
+		} catch (Exception e) {
+			logger.info(" wrong token!");
+			System.out.println("connection failure");
+			e.printStackTrace();
 		}
 	}
 
 	@OnClose
 	public void onClose(Session session) {
 		connectionSet.remove(this);
-		try {
-			session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE,
-					"session closed"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if(user!=null)
+			logger.info("user " + user.getUserId() + " have left!");
+		else {
+			logger.info("user failed to login");
 		}
 	}
 
@@ -132,14 +154,8 @@ public class WebSocketInterview {
 					interview.failureCount.incrementAndGet();
 					if (interview.failureCount.intValue() > 3) {
 						connectionSet.remove(interview);
-						try {
-							interview.session.close(new CloseReason(
-									CloseCodes.TRY_AGAIN_LATER,
-									"connection failure"));
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+						logger.info("user " + user.getUserId()
+								+ " have failed in connection!");
 					} else {
 						// repeat
 						try {
@@ -156,7 +172,7 @@ public class WebSocketInterview {
 	}
 
 	/**
-	 * send Message to users
+	 * send Message to a user
 	 * 
 	 * @param message
 	 * @param interviewWSset
@@ -175,6 +191,8 @@ public class WebSocketInterview {
 						interview.session.close();
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
+						logger.info("user " + user.getUserId()
+								+ " have failed in connection!");
 						e1.printStackTrace();
 					}
 				} else {
