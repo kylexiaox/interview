@@ -23,18 +23,14 @@ import javax.websocket.server.ServerEndpoint;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.eclipse.jdt.internal.compiler.ast.ThisReference;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import org.apache.tomcat.jni.Directory;
-
 import com.Interview.bean.Message;
 import com.Interview.bean.User;
 import com.Interview.bean.UserType;
 import com.Interview.service.InterviewService;
 import com.Interview.service.UserService;
 import com.Interview.util.JsonObjectMapper;
-import com.apple.laf.ClientPropertyApplicator.Property;
 import com.google.gson.JsonObject;
 import com.sun.research.ws.wadl.Request;
 import com.sun.xml.internal.fastinfoset.sax.Properties;
